@@ -1,4 +1,4 @@
-#! /usr/bin/PYTHON3
+#!/usr/bin/env python3
 
 # Script to connect to list of devices, pull and save running configs with time date stamp
 # Device list is pulled from text file containing list of IP addresses
@@ -14,28 +14,29 @@ import telnetlib
 # password    users password for connecting to device
 # deviceList    file containing list of IP addressing
 
-username = raw_input("Enter you telnet username:")
+username = input("Enter you telnet username: ")
 password = getpass.getpass()
 deviceList = open("./deviceList.txt")
 
 for device in deviceList:
-    print("Getting running config for" + (device))
+    print("Getting running config for " + (device))
     host = device.strip()
     connect = telnetlib.Telnet(host)
-    connect.read_until("Username: ")
-    connect.write(username + "\n")
+    print("connecting")
+    connect.read_until(b"Username: ")
+    connect.write((username + "\n").encode('ascii'))
     if password:
-        connect.read_until("Password: ")
-        connect.write(password + "\n")
+        connect.read_until(b"Password: ")
+        connect.write((password + "\n").encode('ascii'))
         
-    connect.write("terminal length 0\n")
-    connect.write("show run\n")
-    connect.write("exit\n")
+    connect.write(b"terminal length 0\n")
+    connect.write(b"show run\n")
+    connect.write(b"exit\n")
     
     now = datetime.datetime.now()
     runningConfig = connect.read_all()
-    saveFile = open(device + "_" + now, "w")
-    saveFile.write(runningConfig)
+    saveFile = open(device + "_" + now.strftime("%d-%m-%Y %H:%M") +".txt", "w")
+    saveFile.write(runningConfig.decode('ascii'))
     saveFile.write("\n")
     saveFile.close
     print("Config saved for " + device)
